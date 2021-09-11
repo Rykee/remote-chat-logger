@@ -2,8 +2,8 @@ package hu.rhykee;
 
 import com.google.inject.Provides;
 import hu.rhykee.config.ClanInfoConfig;
-import hu.rhykee.model.ClanMembersRequest;
 import hu.rhykee.model.ClanMessageRequest;
+import hu.rhykee.model.UpdateClanMemberLoginRequest;
 import hu.rhykee.panel.ClanInfoPanel;
 import hu.rhykee.web.HttpMessageSender;
 import lombok.extern.slf4j.Slf4j;
@@ -20,9 +20,9 @@ import net.runelite.client.util.ImageUtil;
 
 import javax.inject.Inject;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Collections;
 
 @Slf4j
 @PluginDescriptor(
@@ -67,31 +67,21 @@ public class ClanInfoPlugin extends Plugin {
             }
             case CLAN_MESSAGE: {
                 log.info("Clan system message: " + event.getMessage());
+                //TODO parse
             }
         }
     }
 
     @Subscribe
     public void onClanMemberJoined(ClanMemberJoined event) {
-        if (config.addClanMembersUrl().isBlank()) {
+        if (config.lastLoginUrl().isBlank()) {
             return;
         }
         String playerName = event.getClanMember().getName();
-        log.info("Clan member joined! Name: " + playerName);
-        ClanMembersRequest request = new ClanMembersRequest(Collections.singletonList(playerName));
-        messageSender.sendPostHttpMessage(config.addClanMembersUrl(), request, config.authorization());
+        log.info("Clan member logged in! Name: " + playerName);
+        UpdateClanMemberLoginRequest request = new UpdateClanMemberLoginRequest(playerName, LocalDateTime.now().atOffset(ZoneOffset.UTC));
+        messageSender.sendPostHttpMessage(config.lastLoginUrl(), request, config.authorization());
     }
-
-   /* @Subscribe
-    public void onClanMemberLeft(ClanMemberLeft event) {
-        if (config.removeClanMemberUrl().isBlank()) {
-            return;
-        }
-        String playerName = event.getClanMember().getName();
-        log.info("Clan member left! Name: " + playerName);
-        RemoveClanMembersRequest request = new RemoveClanMembersRequest(Collections.singletonList(playerName));
-        messageSender.sendDeleteHttpMessage(config.removeClanMemberUrl(), request, config.authorization());
-    }*/
 
     @Provides
     ClanInfoConfig provideConfig(ConfigManager configManager) {

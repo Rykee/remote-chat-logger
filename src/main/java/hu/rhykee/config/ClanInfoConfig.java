@@ -60,5 +60,16 @@ public interface ClanInfoConfig extends Config {
         return "";
     }
 
+    @ConfigItem(
+            position = 5,
+            keyName = "updateLastLogin",
+            name = "Last login URL",
+            description = "The URL used to update a clan member's last login date",
+            section = connection
+    )
+    default String lastLoginUrl() {
+        return "";
+    }
+
 
 }
