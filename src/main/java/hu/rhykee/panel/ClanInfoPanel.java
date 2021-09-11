@@ -1,7 +1,7 @@
 package hu.rhykee.panel;
 
 import hu.rhykee.config.ClanInfoConfig;
-import hu.rhykee.model.AddClanMembersRequest;
+import hu.rhykee.model.ClanMembersRequest;
 import hu.rhykee.web.HttpMessageSender;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -43,7 +43,7 @@ public class ClanInfoPanel extends PluginPanel {
             if (clanMemberNames.isEmpty()) {
                 log.warn("Can't send clan member names, because you are not in a clan or not logged in!");
             } else {
-                AddClanMembersRequest request = new AddClanMembersRequest(clanMemberNames);
+                ClanMembersRequest request = new ClanMembersRequest(clanMemberNames);
                 messageSender.sendPostHttpMessage(config.addClanMembersUrl(), request, config.authorization());
             }
         });

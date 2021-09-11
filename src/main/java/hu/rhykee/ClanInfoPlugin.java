@@ -2,7 +2,7 @@ package hu.rhykee;
 
 import com.google.inject.Provides;
 import hu.rhykee.config.ClanInfoConfig;
-import hu.rhykee.model.AddClanMembersRequest;
+import hu.rhykee.model.ClanMembersRequest;
 import hu.rhykee.model.ClanMessageRequest;
 import hu.rhykee.panel.ClanInfoPanel;
 import hu.rhykee.web.HttpMessageSender;
@@ -78,7 +78,7 @@ public class ClanInfoPlugin extends Plugin {
         }
         String playerName = event.getClanMember().getName();
         log.info("Clan member joined! Name: " + playerName);
-        AddClanMembersRequest request = new AddClanMembersRequest(Collections.singletonList(playerName));
+        ClanMembersRequest request = new ClanMembersRequest(Collections.singletonList(playerName));
         messageSender.sendPostHttpMessage(config.addClanMembersUrl(), request, config.authorization());
     }
 

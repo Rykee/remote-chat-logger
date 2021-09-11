@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class AddClanMembersRequest {
+public class ClanMembersRequest {
 
     @JsonProperty
     private List<String> members;
