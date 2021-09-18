@@ -47,6 +47,7 @@ Example:
 |Name|Type|N|Description|
 |---|---|---|---|
 |members|Array of String|1|The players' names
+
 Example:
 ```
 {
