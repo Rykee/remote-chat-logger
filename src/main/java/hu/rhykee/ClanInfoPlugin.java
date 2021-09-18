@@ -2,6 +2,8 @@ package hu.rhykee;
 
 import com.google.inject.Provides;
 import hu.rhykee.config.ClanInfoConfig;
+import hu.rhykee.model.ClanMemberOperation;
+import hu.rhykee.model.ClanMembersRequest;
 import hu.rhykee.model.ClanMessageRequest;
 import hu.rhykee.model.UpdateClanMemberLoginRequest;
 import hu.rhykee.panel.ClanInfoPanel;
@@ -23,6 +25,13 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.EnumMap;
+import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static hu.rhykee.model.ClanMemberOperation.ADD;
+import static hu.rhykee.model.ClanMemberOperation.REMOVE;
 
 @Slf4j
 @PluginDescriptor(
@@ -30,7 +39,11 @@ import java.time.ZoneOffset;
 )
 public class ClanInfoPlugin extends Plugin {
 
+    private static final Pattern KICKED_FROM_CLAN = Pattern.compile("(?<expeller>[\\w\\d ]+) has expelled (?<expellee>[\\w\\d ]+) from the clan");
+    private static final Pattern INVITED_TO_CLAN = Pattern.compile("(?<invitee>[\\w\\d ]+) has been invited to the clan by (?<inviter>[\\w\\d ]+)");
+    private static final Pattern LEFT_THE_CLAN = Pattern.compile("(?<player>[\\w\\d ]+) has left the clan");
     private final HttpMessageSender messageSender = HttpMessageSender.getInstance();
+    private final EnumMap<ClanMemberOperation, Consumer<String>> OPERATION_MAP = new EnumMap<>(ClanMemberOperation.class);
 
     @Inject
     private Client client;
@@ -40,16 +53,20 @@ public class ClanInfoPlugin extends Plugin {
 
     @Inject
     private ClientToolbar clientToolbar;
-
+    private NavigationButton panelButton;
 
     @Override
     protected void startUp() {
-        clientToolbar.addNavigation(createPanelButton());
+        panelButton = createPanelButton();
+        clientToolbar.addNavigation(panelButton);
+        OPERATION_MAP.put(ADD, playerName -> messageSender.sendPostHttpMessage(config.addClanMembersUrl(), new ClanMembersRequest(playerName), config.authorization()));
+        OPERATION_MAP.put(REMOVE, playerName -> messageSender.sendDeleteHttpMessage(config.removeClanMemberUrl(), new ClanMembersRequest(playerName), config.authorization()));
         log.info("Remote Clan Info Logger started!");
     }
 
     @Override
     protected void shutDown() {
+        clientToolbar.removeNavigation(panelButton);
         log.info("Remote Clan Info Logger stopped!");
     }
 
@@ -60,15 +77,39 @@ public class ClanInfoPlugin extends Plugin {
         }
         switch (event.getType()) {
             case CLAN_CHAT: {
-                ClanMessageRequest message = convertToClanMessage(event);
-                log.info("Received clan chat message: " + message);
-                messageSender.sendPostHttpMessage(config.clanChatUrl(), message, config.authorization());
+                handleClanChatMessage(event);
                 break;
             }
             case CLAN_MESSAGE: {
-                log.info("Clan system message: " + event.getMessage());
-                //TODO parse
+                handleClanSystemMessage(event.getMessage());
+                break;
             }
+        }
+    }
+
+    private void handleClanChatMessage(ChatMessage event) {
+        ClanMessageRequest message = convertToClanMessage(event);
+        log.info("Received clan chat message: " + message);
+        messageSender.sendPostHttpMessage(config.clanChatUrl(), message, config.authorization());
+    }
+
+    private void handleClanSystemMessage(String message) {
+        if (tryPattern(message, KICKED_FROM_CLAN, "expellee", REMOVE)) {
+            return;
+        }
+        if (tryPattern(message, INVITED_TO_CLAN, "invitee", ADD)) {
+            return;
+        }
+        tryPattern(message, LEFT_THE_CLAN, "player", REMOVE);
+    }
+
+    private boolean tryPattern(String input, Pattern pattern, String groupName, ClanMemberOperation operation) {
+        Matcher matcher = pattern.matcher(input);
+        if (matcher.matches()) {
+            OPERATION_MAP.get(operation).accept(matcher.group(groupName));
+            return true;
+        } else {
+            return false;
         }
     }
 

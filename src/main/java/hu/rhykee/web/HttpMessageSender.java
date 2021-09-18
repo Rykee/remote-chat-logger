@@ -83,7 +83,6 @@ public class HttpMessageSender {
     }
 
     private static class Holder {
-
         private static final HttpMessageSender INSTANCE = new HttpMessageSender();
     }
 

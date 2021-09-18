@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.Collections;
 import java.util.List;
 
 @Getter
@@ -18,5 +19,9 @@ public class ClanMembersRequest {
 
     @JsonProperty
     private List<String> members;
+
+    public ClanMembersRequest(String singlePlayer) {
+        this.members = Collections.singletonList(singlePlayer);
+    }
 
 }
