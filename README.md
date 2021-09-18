@@ -4,8 +4,8 @@ This plugin is used to send clan related info as HTTP requests with JSON body:
 
 - Clan chat log
 - Clan member list
-- Clan member joined (**TODO**)
-- Clan member left/kicked (**TODO**)
+- Clan member joined
+- Clan member left/kicked
 - Clan member last login time
 
 # Configuration
@@ -13,11 +13,13 @@ This plugin is used to send clan related info as HTTP requests with JSON body:
 
 **Authorization header**: If provided adds an Authorization header to the HTTP requests. E.g.: Bearer token, Basic auth
 
-**Clan chat url**:  Clan chat logs will be sent to this URL as a POST request
+**Clan chat URL**:  Clan chat logs will be sent to this URL as a POST request
 
 **Add clan members URL**:  When a player joins the clan, or clicking the "Send clan members list" button on the side panel, a POST request will be sent to this URL.
 
 **Remove clan member URL**: When a player leaves the clan or gets kicked a DELETE request will be sent to this URL.
+
+**Last login URL**:  Update a clan member's last login date
 
 
 ## Request objects
@@ -53,7 +55,7 @@ Example:
         "Not Needed",
         "Conyrideyak",
         "darth keeper"
-	]
+    ]
 }
 ```
 ### UpdateClanMemberLoginRequest
@@ -62,3 +64,11 @@ Example:
 |---|---|---|---|
 |username|String|1|The player's name
 |lastLoginTime|Timestamp|1|The time of the login's timestamp in ISO 8601 format
+
+Example:
+```
+{
+    "username": "Rhykee",
+    "lastLoginTime": "2021-09-11T12:15:13Z"
+}
+```
